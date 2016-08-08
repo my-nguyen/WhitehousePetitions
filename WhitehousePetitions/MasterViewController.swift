@@ -18,7 +18,14 @@ class MasterViewController: UITableViewController {
         super.viewDidLoad()
 
         // White House URL
-        let urlString = "https://api.whitehouse.gov/v1/petitions.json?limit=100"
+        let urlString: String
+        if navigationController?.tabBarItem.tag == 0 {
+            // the first MasterViewController loads the original JSON
+            urlString = "https://api.whitehouse.gov/v1/petitions.json?limit=100"
+        } else {
+            // the second loads only petitions that have at least 10,0000 signatures
+            urlString = "https://api.whitehouse.gov/v1/petitions.json?signatureCountFloor=10000&limit=100"
+        }
         // make sure URL is valid
         if let url = NSURL(string: urlString) {
             // extract the contents of the URL
@@ -28,8 +35,14 @@ class MasterViewController: UITableViewController {
                 // extract the "status" metadata from JSON
                 if json["metadata"]["responseInfo"]["status"].intValue == 200 {
                     parseJSON(json)
+                } else {
+                    showError()
                 }
+            } else {
+                showError()
             }
+        } else {
+            showError()
         }
     }
 
@@ -88,6 +101,14 @@ class MasterViewController: UITableViewController {
         }
 
         tableView.reloadData()
+    }
+
+    func showError() {
+        let title = "Loading error"
+        let message = "There was a problem with the feed; please check your connection and try again."
+        let alertController = UIAlertController(title: title, message: message, preferredStyle: .Alert)
+        alertController.addAction(UIAlertAction(title: "OK", style: .Default, handler: nil))
+        presentViewController(alertController, animated: true, completion: nil)
     }
 }
 
