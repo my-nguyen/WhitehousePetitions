@@ -11,11 +11,27 @@ import UIKit
 class MasterViewController: UITableViewController {
 
     var detailViewController: DetailViewController? = nil
-    var objects = [AnyObject]()
-
+    // an array of dictionaries; each holding a string for its key and another string for its value.
+    var objects = [[String: String]]()
 
     override func viewDidLoad() {
         super.viewDidLoad()
+
+        // White House URL
+        let urlString = "https://api.whitehouse.gov/v1/petitions.json?limit=100"
+        // make sure URL is valid
+        if let url = NSURL(string: urlString) {
+            // extract the contents of the URL
+            if let data = try? NSData(contentsOfURL: url, options: []) {
+                // create a SwiftyJSON object based on the whole URL content
+                let json = JSON(data: data)
+                // extract the "status" metadata from JSON
+                if json["metadata"]["responseInfo"]["status"].intValue == 200 {
+                    print("status is 200")
+                    parseJSON(json)
+                }
+            }
+        }
     }
 
     override func viewWillAppear(animated: Bool) {
@@ -56,8 +72,24 @@ class MasterViewController: UITableViewController {
         let cell = tableView.dequeueReusableCellWithIdentifier("Cell", forIndexPath: indexPath)
 
         let object = objects[indexPath.row]
-        cell.textLabel!.text = object.description
+        // set the correct title and subtitle
+        cell.textLabel!.text = object["title"]
+        cell.detailTextLabel!.text = object["body"]
         return cell
+    }
+
+    func parseJSON(json: JSON) {
+        for result in json["results"].arrayValue {
+            let title = result["title"].stringValue
+            let body = result["body"].stringValue
+            let signatureCount = result["signatureCount"].stringValue
+            let object = ["title": title, "body": body, "signatureCount": signatureCount]
+
+            objects.append(object)
+        }
+        print("count: \(objects.count)")
+
+        tableView.reloadData()
     }
 }
 
