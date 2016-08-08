@@ -27,7 +27,6 @@ class MasterViewController: UITableViewController {
                 let json = JSON(data: data)
                 // extract the "status" metadata from JSON
                 if json["metadata"]["responseInfo"]["status"].intValue == 200 {
-                    print("status is 200")
                     parseJSON(json)
                 }
             }
@@ -87,7 +86,6 @@ class MasterViewController: UITableViewController {
 
             objects.append(object)
         }
-        print("count: \(objects.count)")
 
         tableView.reloadData()
     }
