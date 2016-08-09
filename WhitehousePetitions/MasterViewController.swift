@@ -107,15 +107,22 @@ class MasterViewController: UITableViewController {
             objects.append(object)
         }
 
-        tableView.reloadData()
+        // at this point, we're on the background thread to fetch remote JSON data
+        // need to call dispatch_async() to run the following block of code on the main thread
+        dispatch_async(dispatch_get_main_queue()) { [unowned self] in
+            self.tableView.reloadData()
+        }
     }
 
     func showError() {
-        let title = "Loading error"
-        let message = "There was a problem with the feed; please check your connection and try again."
-        let alertController = UIAlertController(title: title, message: message, preferredStyle: .Alert)
-        alertController.addAction(UIAlertAction(title: "OK", style: .Default, handler: nil))
-        presentViewController(alertController, animated: true, completion: nil)
+        // need to call dispatch_async() to run the following block of code on the main thread
+        dispatch_async(dispatch_get_main_queue()) { [unowned self] in
+            let title = "Loading error"
+            let message = "There was a problem with the feed; please check your connection and try again."
+            let alertController = UIAlertController(title: title, message: message, preferredStyle: .Alert)
+            alertController.addAction(UIAlertAction(title: "OK", style: .Default, handler: nil))
+            self.presentViewController(alertController, animated: true, completion: nil)
+        }
     }
 }
 
