@@ -26,23 +26,30 @@ class MasterViewController: UITableViewController {
             // the second loads only petitions that have at least 10,0000 signatures
             urlString = "https://api.whitehouse.gov/v1/petitions.json?signatureCountFloor=10000&limit=100"
         }
-        // make sure URL is valid
-        if let url = NSURL(string: urlString) {
-            // extract the contents of the URL
-            if let data = try? NSData(contentsOfURL: url, options: []) {
-                // create a SwiftyJSON object based on the whole URL content
-                let json = JSON(data: data)
-                // extract the "status" metadata from JSON
-                if json["metadata"]["responseInfo"]["status"].intValue == 200 {
-                    parseJSON(json)
+
+        // obtain a queue with QoS of type User Initiated
+        let queue = dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0)
+        // dispatch_async() takes 2 parameters: a queue, and a closure
+        // again, declare [unowned self] to avoid strong reference cycles in the closure
+        dispatch_async(queue) { [unowned self] in
+            // make sure URL is valid
+            if let url = NSURL(string: urlString) {
+                // extract the contents of the URL
+                if let data = try? NSData(contentsOfURL: url, options: []) {
+                    // create a SwiftyJSON object based on the whole URL content
+                    let json = JSON(data: data)
+                    // extract the "status" metadata from JSON
+                    if json["metadata"]["responseInfo"]["status"].intValue == 200 {
+                        self.parseJSON(json)
+                    } else {
+                        self.showError()
+                    }
                 } else {
-                    showError()
+                    self.showError()
                 }
             } else {
-                showError()
+                self.showError()
             }
-        } else {
-            showError()
         }
     }
 
